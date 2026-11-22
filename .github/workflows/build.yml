@@ -4,13 +4,22 @@ on:
   pull_request:
   workflow_dispatch:
     inputs:
-      is_self_hosted:
-        type: boolean
-        default: false
+      runner:
+        type: choice
+        description: 'Runner to use for the build'
+        default: 'ubuntu-24.04'
+        options:
+          - ubuntu-26.04
+          - ubuntu-24.04
+          - ubuntu-22.04
+          - ubuntu-26.04-arm
+          - ubuntu-24.04-arm
+          - ubuntu-22.04-arm
+          - self-hosted
 
 jobs:
   yocto-aarch64:
-    runs-on: ${{ inputs.is_self_hosted && 'self-hosted' || 'ubuntu-24.04' }}
+    runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}
     container:
     steps:
       - name: Packages
@@ -44,7 +53,7 @@ jobs:
           qemu-arm64 -L $WORKDIR/recipe-sysroot $WORKDIR/build/release/hello-worldPackageTests.xctest --testing-library swift-testing
 
   yocto-armv7:
-    runs-on: ${{ inputs.is_self_hosted && 'self-hosted' || 'ubuntu-24.04' }}
+    runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}
     container:
     steps:
       - name: Packages
@@ -78,7 +87,7 @@ jobs:
           qemu-arm -L $WORKDIR/recipe-sysroot $WORKDIR/build/release/hello-worldPackageTests.xctest --testing-library swift-testing
 
   yocto-x86_64:
-    runs-on: ${{ inputs.is_self_hosted && 'self-hosted' || 'ubuntu-24.04' }}
+    runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}
     container:
     steps:
       - name: Packages
