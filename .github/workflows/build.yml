@@ -25,7 +25,7 @@ jobs:
       - name: Packages
         run: |
           sudo apt-get update
-          sudo apt install -y build-essential chrpath cpio debianutils diffstat file gawk gcc git iputils-ping libacl1 liblz4-tool locales python3 python3-git python3-jinja2 python3-pexpect python3-pip python3-subunit socat texinfo unzip wget xz-utils zstd qemu-user
+          sudo apt install -y build-essential chrpath cpio debianutils diffstat file gawk gcc gdb git iputils-ping libacl1 liblz4-tool locales python3 python3-git python3-jinja2 python3-pexpect python3-pip python3-subunit socat texinfo unzip wget xz-utils zstd qemu-user
           echo 0 | sudo tee /proc/sys/kernel/apparmor_restrict_unprivileged_userns
       - name: Checkout BitBake
         run: git clone --depth 1 --branch 2.18 https://git.openembedded.org/bitbake $GITHUB_WORKSPACE/bitbake
@@ -48,9 +48,7 @@ jobs:
           EOF
           bitbake swift-hello-world
           WORKDIR=$(bitbake -e swift-hello-world | grep '^WORKDIR=' | cut -d'"' -f2)
-          export LD_LIBRARY_PATH="$WORKDIR/recipe-sysroot/usr/lib/swift/linux:$WORKDIR/recipe-sysroot/usr/lib:$WORKDIR/recipe-sysroot/lib"
-          qemu-arm64 -L $WORKDIR/recipe-sysroot $WORKDIR/build/release/hello-world
-          qemu-arm64 -L $WORKDIR/recipe-sysroot $WORKDIR/build/release/hello-worldPackageTests.xctest --testing-library swift-testing
+          bash "$GITHUB_WORKSPACE/meta-swift/.github/scripts/run-qemu-tests.sh" aarch64 "$WORKDIR"
 
   yocto-armv7:
     runs-on: ${{ inputs.runner || 'ubuntu-24.04' }}
@@ -93,7 +91,7 @@ jobs:
       - name: Packages
         run: |
           sudo apt-get update
-          sudo apt install -y build-essential chrpath cpio debianutils diffstat file gawk gcc git iputils-ping libacl1 liblz4-tool locales python3 python3-git python3-jinja2 python3-pexpect python3-pip python3-subunit socat texinfo unzip wget xz-utils zstd qemu-user
+          sudo apt install -y build-essential chrpath cpio debianutils diffstat file gawk gcc gdb git iputils-ping libacl1 liblz4-tool locales python3 python3-git python3-jinja2 python3-pexpect python3-pip python3-subunit socat texinfo unzip wget xz-utils zstd qemu-user
           echo 0 | sudo tee /proc/sys/kernel/apparmor_restrict_unprivileged_userns
       - name: Checkout BitBake
         run: git clone --depth 1 --branch 2.18 https://git.openembedded.org/bitbake $GITHUB_WORKSPACE/bitbake
@@ -116,14 +114,4 @@ jobs:
           EOF
           bitbake swift-hello-world
           WORKDIR=$(bitbake -e swift-hello-world | grep '^WORKDIR=' | cut -d'"' -f2)
-          # qemu-user's -L sysroot does not fully isolate library resolution
-          # when the host arch matches the target: the runner's own
-          # /lib/x86_64-linux-gnu/libm.so.6 shadows the sysroot's, so
-          # libswiftCore.so's GLIBC_2.43 requirement fails and the binary
-          # segfaults. Invoke the target ld.so explicitly with --library-path
-          # so only the sysroot's libs are considered. Not needed on armv7 or
-          # aarch64 where the host has no matching-arch libs to shadow.
-          LDSO=$WORKDIR/recipe-sysroot/lib/ld-linux-x86-64.so.2
-          LIBS=$WORKDIR/recipe-sysroot/usr/lib/swift/linux:$WORKDIR/recipe-sysroot/usr/lib:$WORKDIR/recipe-sysroot/lib
-          qemu-x86_64 -L $WORKDIR/recipe-sysroot $LDSO --library-path $LIBS $WORKDIR/build/release/hello-world
-          qemu-x86_64 -L $WORKDIR/recipe-sysroot $LDSO --library-path $LIBS $WORKDIR/build/release/hello-worldPackageTests.xctest --testing-library swift-testing
+          bash "$GITHUB_WORKSPACE/meta-swift/.github/scripts/run-qemu-tests.sh" x86_64 "$WORKDIR"
