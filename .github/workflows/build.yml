@@ -112,5 +112,11 @@ jobs:
           INIT_MANAGER = "mdev-busybox"
           EOF
           bitbake swift-hello-world
+      - name: Run QEMU tests
+        # Keep build coverage on older ARM runners without running x86-64 emulation.
+        if: ${{ inputs.runner != 'ubuntu-22.04-arm' && inputs.runner != 'ubuntu-24.04-arm' }}
+        run: |
+          cd "$GITHUB_WORKSPACE"
+          source openembedded-core/oe-init-build-env build
           WORKDIR=$(bitbake -e swift-hello-world | grep '^WORKDIR=' | cut -d'"' -f2)
           bash "$GITHUB_WORKSPACE/meta-swift/.github/scripts/run-qemu-tests.sh" x86_64 "$WORKDIR"
