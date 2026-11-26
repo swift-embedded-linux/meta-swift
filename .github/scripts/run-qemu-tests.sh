@@ -16,8 +16,10 @@ case $arch in
         # Prefer the command used by the old workflow, if available.
         qemu=$(command -v qemu-arm64 || command -v qemu-aarch64)
         loader=$sysroot/lib/ld-linux-aarch64.so.1
-        guest_args=(-L "$sysroot")
-        baseline=(env "LD_LIBRARY_PATH=$libs" "$qemu")
+        # On ARM hosts, the host loader can also load AArch64 libraries.
+        # Give the Yocto library path to the guest only.
+        guest_args=(-L "$sysroot" -E "LD_LIBRARY_PATH=$libs")
+        baseline=(env -u LD_LIBRARY_PATH "$qemu")
         ;;
     x86_64)
         qemu=$(command -v qemu-x86_64)
@@ -56,12 +58,9 @@ host_backtrace() {
         return
     fi
 
-    # Start GDB with host libraries. For the original AArch64 invocation,
-    # restore the Yocto library path only in the QEMU inferior.
+    # Start GDB with host libraries and match the test's QEMU environment.
     local -a inferior_env=()
-    if [[ $arch == aarch64 ]]; then
-        inferior_env=(-ex "set environment LD_LIBRARY_PATH=$libs")
-    elif [[ -v LD_LIBRARY_PATH ]]; then
+    if [[ $arch == x86_64 && -v LD_LIBRARY_PATH ]]; then
         inferior_env=(-ex "set environment LD_LIBRARY_PATH=$LD_LIBRARY_PATH")
     fi
     echo 'Host QEMU backtrace (first stop; QEMU may handle some signals itself):'
@@ -94,15 +93,9 @@ run_test() {
     probe env -u LD_LIBRARY_PATH "$qemu" -L "$sysroot" \
         "$loader" --library-path "$libs" --list "$1"
 
-    if [[ $arch == aarch64 ]]; then
-        echo 'QEMU retry with LD_LIBRARY_PATH set only in the guest:'
-        probe env -u LD_LIBRARY_PATH "$qemu" -L "$sysroot" \
-            -E "LD_LIBRARY_PATH=$libs" "$@"
-
-        if [[ $(uname -m) == aarch64 ]]; then
-            echo 'Native AArch64 comparison with the Yocto loader (no QEMU):'
-            probe env -u LD_LIBRARY_PATH "$loader" --library-path "$libs" "$@"
-        fi
+    if [[ $arch == aarch64 && $(uname -m) == aarch64 ]]; then
+        echo 'Native AArch64 comparison with the Yocto loader (no QEMU):'
+        probe env -u LD_LIBRARY_PATH "$loader" --library-path "$libs" "$@"
     fi
 
     host_backtrace "$@"
