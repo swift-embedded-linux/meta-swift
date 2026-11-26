@@ -24,7 +24,7 @@ jobs:
       - name: Packages
         run: |
           sudo apt-get update
-          sudo apt install -y build-essential chrpath cpio debianutils diffstat file gawk gcc gdb git iputils-ping libacl1 liblz4-tool locales python3 python3-git python3-jinja2 python3-pexpect python3-pip python3-subunit socat texinfo unzip wget xz-utils zstd qemu-user
+          sudo apt install -y build-essential chrpath cpio debianutils diffstat file gawk gcc gdb git iputils-ping libacl1 locales lz4 python3 python3-git python3-jinja2 python3-pexpect python3-pip python3-subunit socat texinfo unzip wget xz-utils zstd qemu-user
           echo 0 | sudo tee /proc/sys/kernel/apparmor_restrict_unprivileged_userns
       - name: Checkout BitBake
         run: git clone --depth 1 --branch 2.18 https://git.openembedded.org/bitbake $GITHUB_WORKSPACE/bitbake
@@ -56,7 +56,7 @@ jobs:
       - name: Packages
         run: |
           sudo apt-get update
-          sudo apt install -y build-essential chrpath cpio debianutils diffstat file gawk gcc git iputils-ping libacl1 liblz4-tool locales python3 python3-git python3-jinja2 python3-pexpect python3-pip python3-subunit socat texinfo unzip wget xz-utils zstd qemu-user
+          sudo apt install -y build-essential chrpath cpio debianutils diffstat file gawk gcc git iputils-ping libacl1 locales lz4 python3 python3-git python3-jinja2 python3-pexpect python3-pip python3-subunit socat texinfo unzip wget xz-utils zstd qemu-user
           echo 0 | sudo tee /proc/sys/kernel/apparmor_restrict_unprivileged_userns
       - name: Checkout BitBake
         run: git clone --depth 1 --branch 2.18 https://git.openembedded.org/bitbake $GITHUB_WORKSPACE/bitbake
@@ -90,7 +90,7 @@ jobs:
       - name: Packages
         run: |
           sudo apt-get update
-          sudo apt install -y build-essential chrpath cpio debianutils diffstat file gawk gcc gdb git iputils-ping libacl1 liblz4-tool locales python3 python3-git python3-jinja2 python3-pexpect python3-pip python3-subunit socat texinfo unzip wget xz-utils zstd qemu-user
+          sudo apt install -y build-essential chrpath cpio debianutils diffstat file gawk gcc gdb git iputils-ping libacl1 locales lz4 python3 python3-git python3-jinja2 python3-pexpect python3-pip python3-subunit socat texinfo unzip wget xz-utils zstd qemu-user
           echo 0 | sudo tee /proc/sys/kernel/apparmor_restrict_unprivileged_userns
       - name: Checkout BitBake
         run: git clone --depth 1 --branch 2.18 https://git.openembedded.org/bitbake $GITHUB_WORKSPACE/bitbake
